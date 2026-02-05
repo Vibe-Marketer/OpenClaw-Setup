@@ -55,14 +55,24 @@ else
     echo "  Installing Homebrew in background"
     echo "===================================="
     echo ""
-    echo "A new Terminal window will open to install Homebrew."
+    echo "A new Terminal window will open to install Homebrew + Tailscale."
     echo "This includes Xcode tools and takes 10-30 minutes."
     echo "You can use OpenClaw now while that finishes."
     echo ""
     
-    # Spawn new Terminal window for Homebrew install
+    # Spawn new Terminal window for Homebrew + Tailscale install
     osascript -e 'tell application "Terminal"
-        do script "echo \"Installing Homebrew (this takes a while)...\" && /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" && echo \"\" && echo \"Homebrew installation complete!\" && echo \"You can close this window.\""
+        do script "echo \"===================================\" && echo \"  Installing Homebrew + Tailscale\" && echo \"===================================\" && echo \"\" && echo \"[1/2] Installing Homebrew...\" && /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" && eval \"$(/opt/homebrew/bin/brew shellenv)\" && echo \"\" && echo \"[2/2] Installing Tailscale...\" && brew install --cask tailscale && echo \"\" && echo \"===================================\" && echo \"  Done!\" && echo \"===================================\" && echo \"\" && echo \"Open Tailscale from Applications and sign in.\" && echo \"\" && echo \"For iMessage setup, run this in a new terminal:\" && echo \"/bin/bash -c \\\"\\$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Physical-Mac-Setup/setup-imessage.sh)\\\"\" && echo \"\" && echo \"You can close this window.\""
         activate
     end tell'
 fi
+
+echo ""
+echo "===================================="
+echo "  For iMessage Setup (after Homebrew finishes)"
+echo "===================================="
+echo ""
+echo "Run this command in a new terminal:"
+echo ""
+echo "/bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Physical-Mac-Setup/setup-imessage.sh)\""
+echo ""
