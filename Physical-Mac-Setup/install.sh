@@ -65,14 +65,146 @@ echo ""
 read -p "   Enter your phone number: " PHONE_NUMBER
 echo ""
 
+# BlueBubbles setup
+echo "4. BLUEBUBBLES SETUP (recommended for iMessage)"
+echo "   BlueBubbles provides better iMessage integration."
+echo "   Install from: https://bluebubbles.app/install"
+echo ""
+read -p "   Do you have BlueBubbles installed? (y/n): " HAS_BLUEBUBBLES
+echo ""
+
+if [[ "$HAS_BLUEBUBBLES" =~ ^[Yy]$ ]]; then
+    echo "   Enter your BlueBubbles server details:"
+    echo ""
+    read -p "   Server URL (e.g., http://localhost:1234): " BLUEBUBBLES_URL
+    read -p "   API Password (from BlueBubbles settings): " BLUEBUBBLES_PASSWORD
+    echo ""
+    USE_BLUEBUBBLES=true
+else
+    echo "   Skipping BlueBubbles - will use legacy imsg instead."
+    echo "   You can set up BlueBubbles later if needed."
+    echo ""
+    USE_BLUEBUBBLES=false
+fi
+
 # Create OpenClaw directories
 echo ""
 echo "[5/5] Creating OpenClaw configuration..."
 mkdir -p ~/.openclaw/workspace
 mkdir -p ~/.openclaw/credentials
 
-# Create the full config file
-cat > ~/.openclaw/openclaw.json << EOF
+# Create the config file based on BlueBubbles choice
+if [ "$USE_BLUEBUBBLES" = true ]; then
+    # Config with BlueBubbles (recommended)
+    cat > ~/.openclaw/openclaw.json << EOF
+{
+  "auth": {
+    "profiles": {
+      "anthropic:default": {
+        "provider": "anthropic",
+        "mode": "token"
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "models": {
+        "anthropic/claude-opus-4-5": {
+          "alias": "opus"
+        }
+      },
+      "workspace": "/Users/${CURRENT_USER}/.openclaw/workspace",
+      "contextPruning": {
+        "mode": "cache-ttl",
+        "ttl": "1h"
+      },
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "heartbeat": {
+        "every": "1h"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    }
+  },
+  "tools": {
+    "web": {
+      "search": {
+        "enabled": true,
+        "apiKey": "${BRAVE_SEARCH_API_KEY}"
+      },
+      "fetch": {
+        "enabled": true
+      }
+    }
+  },
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "session": {
+    "dmScope": "per-channel-peer"
+  },
+  "channels": {
+    "bluebubbles": {
+      "enabled": true,
+      "serverUrl": "${BLUEBUBBLES_URL}",
+      "password": "${BLUEBUBBLES_PASSWORD}",
+      "webhookPath": "/bluebubbles-webhook",
+      "dmPolicy": "allowlist",
+      "allowFrom": [
+        "${PHONE_NUMBER}"
+      ],
+      "groupPolicy": "allowlist",
+      "groupAllowFrom": [
+        "${PHONE_NUMBER}"
+      ],
+      "sendReadReceipts": true,
+      "actions": {
+        "reactions": true,
+        "edit": true,
+        "unsend": true,
+        "reply": true,
+        "sendWithEffect": true,
+        "renameGroup": true,
+        "addParticipant": true,
+        "removeParticipant": true,
+        "sendAttachment": true
+      }
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "auth": {
+      "mode": "password",
+      "password": "${GATEWAY_PASSWORD}",
+      "allowTailscale": true
+    },
+    "tailscale": {
+      "mode": "serve",
+      "resetOnExit": true
+    }
+  },
+  "plugins": {
+    "entries": {
+      "bluebubbles": {
+        "enabled": true
+      }
+    }
+  }
+}
+EOF
+else
+    # Config with legacy imsg
+    cat > ~/.openclaw/openclaw.json << EOF
 {
   "auth": {
     "profiles": {
@@ -165,6 +297,7 @@ cat > ~/.openclaw/openclaw.json << EOF
   }
 }
 EOF
+fi
 
 echo "       Config created at ~/.openclaw/openclaw.json"
 
@@ -191,8 +324,10 @@ echo ""
 if command -v brew &> /dev/null; then
     echo "(Homebrew already installed)"
     echo ""
-    echo "Installing iMessage tools..."
-    brew install steipete/tap/imsg 2>/dev/null || true
+    if [ "$USE_BLUEBUBBLES" = false ]; then
+        echo "Installing iMessage tools..."
+        brew install steipete/tap/imsg 2>/dev/null || true
+    fi
     brew install --cask tailscale 2>/dev/null || true
     echo ""
     echo "===================================="
@@ -203,11 +338,18 @@ if command -v brew &> /dev/null; then
     echo ""
     echo "2. Open Tailscale from Applications and sign in"
     echo ""
-    echo "3. Grant Full Disk Access:"
-    echo "   System Settings > Privacy & Security > Full Disk Access"
-    echo "   Add: Terminal, /opt/homebrew/bin/imsg, /opt/homebrew/bin/node"
-    echo ""
-    echo "4. Sign into Messages app with Apple ID"
+    if [ "$USE_BLUEBUBBLES" = true ]; then
+        echo "3. Configure BlueBubbles webhook:"
+        echo "   Point to: http://localhost:18789/bluebubbles-webhook"
+        echo ""
+        echo "4. Sign into Messages app with Apple ID"
+    else
+        echo "3. Grant Full Disk Access:"
+        echo "   System Settings > Privacy & Security > Full Disk Access"
+        echo "   Add: Terminal, /opt/homebrew/bin/imsg, /opt/homebrew/bin/node"
+        echo ""
+        echo "4. Sign into Messages app with Apple ID"
+    fi
     echo ""
     echo "5. Restart the gateway:"
     echo "   openclaw gateway restart"
@@ -217,17 +359,27 @@ else
     echo "  Homebrew Installing in Background"
     echo "===================================="
     echo ""
-    echo "Another Terminal window will install Homebrew + Tailscale + iMessage tools."
+    echo "Another Terminal window will install Homebrew + Tailscale."
     echo "This takes 10-30 minutes but runs in the background."
     echo ""
     
-    # Spawn new Terminal window for Homebrew + Tailscale + iMessage setup
-    osascript <<EOF
+    if [ "$USE_BLUEBUBBLES" = true ]; then
+        # BlueBubbles - no imsg needed
+        osascript <<EOF
+tell application "Terminal"
+    do script "echo '' && echo '===================================' && echo '  Background Install' && echo '  Homebrew + Tailscale' && echo '===================================' && echo '' && echo '[1/2] Installing Homebrew (this takes a while)...' && /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" && echo '' && echo 'Adding Homebrew to PATH...' && echo 'eval \"\$(/opt/homebrew/bin/brew shellenv)\"' >> ~/.zprofile && eval \"\$(/opt/homebrew/bin/brew shellenv)\" && echo '' && echo '[2/2] Installing Tailscale...' && brew install --cask tailscale && echo '' && echo '===================================' && echo '  Background Install Complete!' && echo '===================================' && echo '' && echo 'MANUAL STEPS REQUIRED:' && echo '' && echo '1. Set up Anthropic auth: claude setup-token' && echo '' && echo '2. Open Tailscale from Applications and sign in' && echo '' && echo '3. Configure BlueBubbles webhook:' && echo '   Point to: http://localhost:18789/bluebubbles-webhook' && echo '' && echo '4. Sign into Messages app with Apple ID' && echo '' && echo '5. Restart the gateway:' && echo '   openclaw gateway restart' && echo ''"
+    activate
+end tell
+EOF
+    else
+        # Legacy imsg
+        osascript <<EOF
 tell application "Terminal"
     do script "echo '' && echo '===================================' && echo '  Background Install' && echo '  Homebrew + Tailscale + iMessage' && echo '===================================' && echo '' && echo '[1/3] Installing Homebrew (this takes a while)...' && /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" && echo '' && echo 'Adding Homebrew to PATH...' && echo 'eval \"\$(/opt/homebrew/bin/brew shellenv)\"' >> ~/.zprofile && eval \"\$(/opt/homebrew/bin/brew shellenv)\" && echo '' && echo '[2/3] Installing Tailscale...' && brew install --cask tailscale && echo '' && echo '[3/3] Installing iMessage tools...' && brew install steipete/tap/imsg && echo '' && echo '===================================' && echo '  Background Install Complete!' && echo '===================================' && echo '' && echo 'MANUAL STEPS REQUIRED:' && echo '' && echo '1. Set up Anthropic auth: claude setup-token' && echo '' && echo '2. Open Tailscale from Applications and sign in' && echo '' && echo '3. Grant Full Disk Access:' && echo '   System Settings > Privacy & Security > Full Disk Access' && echo '   Add: Terminal, /opt/homebrew/bin/imsg, /opt/homebrew/bin/node' && echo '' && echo '4. Sign into Messages app with Apple ID' && echo '' && echo '5. Restart the gateway:' && echo '   openclaw gateway restart' && echo ''"
     activate
 end tell
 EOF
+    fi
 fi
 
 echo "===================================="
