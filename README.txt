@@ -1,9 +1,18 @@
 OPENCLAW SETUP
 ==============
 
-Choose your setup type:
+Setup scripts for installing OpenClaw on Mac.
 
-- Physical Mac (MacBook, Mac Mini, iMac, etc.) --> Open the "Physical-Mac-Setup" folder
-- Virtual Machine (cloud VM, Parallels, etc.)  --> Open the "Virtual-Machine-Setup" folder
+FOLDER STRUCTURE
+----------------
+Setup-Scripts/
+  ├── Physical-Mac-Setup/   <-- For MacBook, Mac Mini, iMac, etc.
+  └── Virtual-Machine-Setup/ <-- For cloud VMs, Parallels, etc.
 
-Each folder has a README.txt with ONE line to copy and paste.
+
+QUICK START
+-----------
+1. Open the Setup-Scripts folder
+2. Choose Physical-Mac-Setup or Virtual-Machine-Setup
+3. Open the README.txt in that folder
+4. Copy/paste the command into Terminal

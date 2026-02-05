@@ -8,7 +8,7 @@ STEP 1: Open Terminal
 
 STEP 2: Copy this ENTIRE line below (all of it, including the quotes):
 
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Virtual-Machine-Setup/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Setup-Scripts/Virtual-Machine-Setup/install.sh)"
 
 STEP 3: Paste it into Terminal (Cmd + V) and press Enter
 

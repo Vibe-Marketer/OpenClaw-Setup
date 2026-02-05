@@ -4,13 +4,13 @@ PHYSICAL MAC SETUP
 FULL INSTALL (fresh Mac - installs everything)
 ----------------------------------------------
 
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Physical-Mac-Setup/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Setup-Scripts/Physical-Mac-Setup/install.sh)"
 
 
 CONFIG ONLY (OpenClaw already installed)
 ----------------------------------------
 
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Physical-Mac-Setup/config-only.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Setup-Scripts/Physical-Mac-Setup/config-only.sh)"
 
 
 WHAT YOU'LL BE ASKED
