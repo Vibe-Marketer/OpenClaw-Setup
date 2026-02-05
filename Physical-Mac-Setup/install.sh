@@ -36,43 +36,47 @@ npm install -g openclaw
 
 echo ""
 echo "===================================="
-echo "  OpenClaw is Ready!"
+echo "  OpenClaw Installed!"
 echo "===================================="
 echo ""
-echo "IMPORTANT: Close this Terminal window, then:"
+
+# Copy openclaw configure to clipboard
+echo "openclaw configure" | pbcopy
+echo "Copied 'openclaw configure' to clipboard."
 echo ""
-echo "  1. Open a NEW Terminal window"
-echo "  2. Run: openclaw configure"
+
+# Open new Terminal window with openclaw configure ready to run
+echo "Opening new Terminal window..."
+osascript -e 'tell application "Terminal"
+    do script "echo \"Paste and press Enter to configure OpenClaw:\" && echo \"(already copied to clipboard)\" && echo \"\""
+    activate
+end tell'
+
 echo ""
-echo "(The new terminal is needed to load the installed tools)"
+echo "A new Terminal window opened."
+echo "Just press Cmd+V and Enter to run 'openclaw configure'"
 echo ""
 
 # Check if Homebrew is already installed
 if command -v brew &> /dev/null; then
-    echo "(Homebrew is already installed)"
+    echo "(Homebrew already installed - skipping background install)"
 else
     echo "===================================="
-    echo "  Installing Homebrew in background"
+    echo "  Homebrew Installing in Background"
     echo "===================================="
     echo ""
-    echo "A new Terminal window will open to install Homebrew + Tailscale."
-    echo "This includes Xcode tools and takes 10-30 minutes."
-    echo "You can use OpenClaw now while that finishes."
+    echo "Another Terminal window will install Homebrew + Tailscale + iMessage tools."
+    echo "This takes 10-30 minutes but runs in the background."
     echo ""
     
-    # Spawn new Terminal window for Homebrew + Tailscale install
+    # Spawn new Terminal window for Homebrew + Tailscale + iMessage setup
     osascript -e 'tell application "Terminal"
-        do script "echo \"===================================\" && echo \"  Installing Homebrew + Tailscale\" && echo \"===================================\" && echo \"\" && echo \"[1/2] Installing Homebrew...\" && /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" && eval \"$(/opt/homebrew/bin/brew shellenv)\" && echo \"\" && echo \"[2/2] Installing Tailscale...\" && brew install --cask tailscale && echo \"\" && echo \"===================================\" && echo \"  Done!\" && echo \"===================================\" && echo \"\" && echo \"Open Tailscale from Applications and sign in.\" && echo \"\" && echo \"For iMessage setup, run this in a new terminal:\" && echo \"/bin/bash -c \\\"\\$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Physical-Mac-Setup/setup-imessage.sh)\\\"\" && echo \"\" && echo \"You can close this window.\""
+        do script "echo \"\" && echo \"===================================\" && echo \"  Background Install\" && echo \"  Homebrew + Tailscale + iMessage\" && echo \"===================================\" && echo \"\" && echo \"[1/3] Installing Homebrew (this takes a while)...\" && /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" && echo \"\" && echo \"Adding Homebrew to PATH...\" && echo '\''eval \"$(/opt/homebrew/bin/brew shellenv)\"'\'' >> ~/.zprofile && eval \"$(/opt/homebrew/bin/brew shellenv)\" && echo \"\" && echo \"[2/3] Installing Tailscale...\" && brew install --cask tailscale && echo \"\" && echo \"[3/3] Setting up iMessage tools...\" && brew install steipete/tap/imsg && mkdir -p ~/.openclaw && CURRENT_USER=$(whoami) && echo '\''{\"channels\":{\"imessage\":{\"enabled\":true,\"cliPath\":\"/opt/homebrew/bin/imsg\",\"dbPath\":\"/Users/'\"'$CURRENT_USER'\"'/Library/Messages/chat.db\",\"dmPolicy\":\"allowlist\",\"allowFrom\":[\"+1XXXXXXXXXX\"]}}}'\'' > ~/.openclaw/openclaw.json && echo \"\" && echo \"===================================\" && echo \"  Background Install Complete!\" && echo \"===================================\" && echo \"\" && echo \"NEXT STEPS:\" && echo \"\" && echo \"1. Open Tailscale from Applications and sign in\" && echo \"\" && echo \"2. Edit allowed phone numbers:\" && echo \"   nano ~/.openclaw/openclaw.json\" && echo \"   Change +1XXXXXXXXXX to real numbers\" && echo \"\" && echo \"3. Grant Full Disk Access:\" && echo \"   System Settings > Privacy & Security > Full Disk Access\" && echo \"   Add: Terminal, /opt/homebrew/bin/imsg, /opt/homebrew/bin/node\" && echo \"\" && echo \"4. Sign into Messages app with Apple ID\" && echo \"\" && echo \"5. Start OpenClaw:\" && echo \"   openclaw gateway start\" && echo \"\""
         activate
     end tell'
 fi
 
-echo ""
 echo "===================================="
-echo "  For iMessage Setup (after Homebrew finishes)"
+echo "  Setup Complete!"
 echo "===================================="
-echo ""
-echo "Run this command in a new terminal:"
-echo ""
-echo "/bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Physical-Mac-Setup/setup-imessage.sh)\""
 echo ""
