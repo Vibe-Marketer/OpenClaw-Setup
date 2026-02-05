@@ -1,27 +1,31 @@
 PHYSICAL MAC SETUP
 ==================
 
-STEP 1: Open Terminal
-   - Press Cmd + Space
-   - Type: Terminal
-   - Press Enter
-
-STEP 2: Copy this ENTIRE line below:
+FULL INSTALL (fresh Mac - installs everything)
+----------------------------------------------
 
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Physical-Mac-Setup/install.sh)"
 
-STEP 3: Paste it into Terminal (Cmd + V) and press Enter
 
-STEP 4: Close Terminal and open a NEW Terminal window
+CONFIG ONLY (OpenClaw already installed)
+----------------------------------------
 
-STEP 5: Run: openclaw configure
-
-That's it for the basic install!
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Physical-Mac-Setup/config-only.sh)"
 
 
-FOR iMESSAGE SETUP (optional, after Homebrew finishes)
-======================================================
+WHAT YOU'LL BE ASKED
+--------------------
+1. Brave Search API Key - get at https://brave.com/search/api/
+2. Gateway Password - secure password for your gateway
+3. Phone Number - your number in +1XXXXXXXXXX format
 
-Wait for Homebrew to finish in the other Terminal window, then run:
 
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Vibe-Marketer/OpenClaw-Setup/main/Physical-Mac-Setup/setup-imessage.sh)"
+AFTER RUNNING THE SCRIPT
+------------------------
+1. Set up Anthropic auth: claude setup-token
+2. Open Tailscale from Applications and sign in
+3. Grant Full Disk Access:
+   System Settings > Privacy & Security > Full Disk Access
+   Add: Terminal, /opt/homebrew/bin/imsg, /opt/homebrew/bin/node
+4. Sign into Messages app with Apple ID
+5. Restart gateway: openclaw gateway restart
