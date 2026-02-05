@@ -61,7 +61,7 @@ else
     echo ""
     
     # Run Homebrew install in background (non-interactive for VMs)
-    (NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile) &
+    (NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile && eval "$(/opt/homebrew/bin/brew shellenv)" && (brew install --cask tailscale || true) && (brew install --cask google-chrome || true) && (brew install --cask chromium || true) && (brew install --cask bitwarden || true)) &
     
-    echo "Homebrew installing in background (PID: $!)"
+    echo "Homebrew + apps installing in background (PID: $!)"
 fi
