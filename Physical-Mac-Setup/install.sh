@@ -6,7 +6,7 @@ echo "===================================="
 echo ""
 
 # Install NVM
-echo "[1/4] Installing NVM..."
+echo "[1/5] Installing NVM..."
 export NVM_DIR="$HOME/.nvm"
 if [ -s "$NVM_DIR/nvm.sh" ]; then
     echo "       NVM already installed, skipping."
@@ -19,42 +19,71 @@ fi
 
 # Install Node.js via NVM
 echo ""
-echo "[2/4] Installing Node.js..."
+echo "[2/5] Installing Node.js..."
 nvm install --lts
 nvm use --lts
 nvm alias default lts/*
 
 # Install Claude Code CLI
 echo ""
-echo "[3/4] Installing Claude Code CLI..."
+echo "[3/5] Installing Claude Code CLI..."
 npm install -g @anthropic-ai/claude-code
 
 # Install OpenClaw
 echo ""
-echo "[4/4] Installing OpenClaw..."
+echo "[4/5] Installing OpenClaw..."
 npm install -g openclaw
 
+# Prompt for Anthropic API Key
 echo ""
 echo "===================================="
-echo "  OpenClaw Installed!"
+echo "  Anthropic API Key Required"
 echo "===================================="
 echo ""
-
-# Copy openclaw configure to clipboard
-echo "openclaw configure" | pbcopy
-echo "Copied 'openclaw configure' to clipboard."
+echo "Get your API key from: https://console.anthropic.com/settings/keys"
+echo ""
+read -p "Enter your Anthropic API Key: " ANTHROPIC_API_KEY
 echo ""
 
-# Open new Terminal window with openclaw configure ready to run
-echo "Opening new Terminal window..."
-osascript -e 'tell application "Terminal"
-    do script "echo \"Paste and press Enter to configure OpenClaw:\" && echo \"(already copied to clipboard)\" && echo \"\""
-    activate
-end tell'
+if [ -z "$ANTHROPIC_API_KEY" ]; then
+    echo "No API key provided. You'll need to run 'openclaw onboard' manually later."
+    SKIP_ONBOARD=true
+else
+    SKIP_ONBOARD=false
+fi
+
+# Run OpenClaw onboard automatically
+echo ""
+echo "[5/5] Configuring OpenClaw..."
+
+if [ "$SKIP_ONBOARD" = false ]; then
+    # Store API key in environment for this session and future shells
+    echo "export ANTHROPIC_API_KEY=\"$ANTHROPIC_API_KEY\"" >> ~/.zprofile
+    export ANTHROPIC_API_KEY
+    
+    # Run non-interactive onboard with Anthropic API key
+    openclaw onboard --non-interactive \
+        --mode local \
+        --auth-choice apiKey \
+        --anthropic-api-key "$ANTHROPIC_API_KEY" \
+        --gateway-port 18789 \
+        --gateway-bind loopback \
+        --install-daemon \
+        --daemon-runtime node
+    
+    echo ""
+    echo "OpenClaw configured with Anthropic!"
+fi
 
 echo ""
-echo "A new Terminal window opened."
-echo "Just press Cmd+V and Enter to run 'openclaw configure'"
+echo "===================================="
+echo "  OpenClaw is Ready!"
+echo "===================================="
+echo ""
+echo "The gateway daemon is now running."
+echo ""
+echo "Open the dashboard: openclaw dashboard"
+echo "Check status:       openclaw gateway status"
 echo ""
 
 # Check if Homebrew is already installed
@@ -69,11 +98,16 @@ else
     echo "This takes 10-30 minutes but runs in the background."
     echo ""
     
+    # Get current username for the config
+    CURRENT_USER=$(whoami)
+    
     # Spawn new Terminal window for Homebrew + Tailscale + iMessage setup
-    osascript -e 'tell application "Terminal"
-        do script "echo \"\" && echo \"===================================\" && echo \"  Background Install\" && echo \"  Homebrew + Tailscale + iMessage\" && echo \"===================================\" && echo \"\" && echo \"[1/3] Installing Homebrew (this takes a while)...\" && /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" && echo \"\" && echo \"Adding Homebrew to PATH...\" && echo '\''eval \"$(/opt/homebrew/bin/brew shellenv)\"'\'' >> ~/.zprofile && eval \"$(/opt/homebrew/bin/brew shellenv)\" && echo \"\" && echo \"[2/3] Installing Tailscale...\" && brew install --cask tailscale && echo \"\" && echo \"[3/3] Setting up iMessage tools...\" && brew install steipete/tap/imsg && mkdir -p ~/.openclaw && CURRENT_USER=$(whoami) && echo '\''{\"channels\":{\"imessage\":{\"enabled\":true,\"cliPath\":\"/opt/homebrew/bin/imsg\",\"dbPath\":\"/Users/'\"'$CURRENT_USER'\"'/Library/Messages/chat.db\",\"dmPolicy\":\"allowlist\",\"allowFrom\":[\"+1XXXXXXXXXX\"]}}}'\'' > ~/.openclaw/openclaw.json && echo \"\" && echo \"===================================\" && echo \"  Background Install Complete!\" && echo \"===================================\" && echo \"\" && echo \"NEXT STEPS:\" && echo \"\" && echo \"1. Open Tailscale from Applications and sign in\" && echo \"\" && echo \"2. Edit allowed phone numbers:\" && echo \"   nano ~/.openclaw/openclaw.json\" && echo \"   Change +1XXXXXXXXXX to real numbers\" && echo \"\" && echo \"3. Grant Full Disk Access:\" && echo \"   System Settings > Privacy & Security > Full Disk Access\" && echo \"   Add: Terminal, /opt/homebrew/bin/imsg, /opt/homebrew/bin/node\" && echo \"\" && echo \"4. Sign into Messages app with Apple ID\" && echo \"\" && echo \"5. Start OpenClaw:\" && echo \"   openclaw gateway start\" && echo \"\""
-        activate
-    end tell'
+    osascript <<EOF
+tell application "Terminal"
+    do script "echo '' && echo '===================================' && echo '  Background Install' && echo '  Homebrew + Tailscale + iMessage' && echo '===================================' && echo '' && echo '[1/3] Installing Homebrew (this takes a while)...' && /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" && echo '' && echo 'Adding Homebrew to PATH...' && echo 'eval \"\$(/opt/homebrew/bin/brew shellenv)\"' >> ~/.zprofile && eval \"\$(/opt/homebrew/bin/brew shellenv)\" && echo '' && echo '[2/3] Installing Tailscale...' && brew install --cask tailscale && echo '' && echo '[3/3] Setting up iMessage tools...' && brew install steipete/tap/imsg && echo '' && echo 'Updating OpenClaw config with iMessage...' && openclaw config set channels.imessage.enabled true && openclaw config set channels.imessage.cliPath /opt/homebrew/bin/imsg && openclaw config set channels.imessage.dbPath /Users/${CURRENT_USER}/Library/Messages/chat.db && openclaw config set channels.imessage.dmPolicy allowlist && echo '' && echo '===================================' && echo '  Background Install Complete!' && echo '===================================' && echo '' && echo 'NEXT STEPS:' && echo '' && echo '1. Open Tailscale from Applications and sign in' && echo '' && echo '2. Edit allowed phone numbers:' && echo '   openclaw config set channels.imessage.allowFrom \\\"[\\\\\\\"+1XXXXXXXXXX\\\\\\\"]\\\"' && echo '   (Replace +1XXXXXXXXXX with real phone numbers)' && echo '' && echo '3. Grant Full Disk Access:' && echo '   System Settings > Privacy & Security > Full Disk Access' && echo '   Add: Terminal, /opt/homebrew/bin/imsg, /opt/homebrew/bin/node' && echo '' && echo '4. Sign into Messages app with Apple ID' && echo '' && echo '5. Restart the gateway:' && echo '   openclaw gateway restart' && echo ''"
+    activate
+end tell
+EOF
 fi
 
 echo "===================================="
