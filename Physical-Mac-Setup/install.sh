@@ -5,38 +5,24 @@ echo "  OpenClaw Setup for Physical Mac"
 echo "===================================="
 echo ""
 
-# Install Homebrew
-echo "[1/4] Installing Homebrew..."
-if command -v brew &> /dev/null; then
-    echo "       Homebrew already installed, skipping."
+# Install NVM
+echo "[1/4] Installing NVM..."
+export NVM_DIR="$HOME/.nvm"
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+    echo "       NVM already installed, skipping."
+    source "$NVM_DIR/nvm.sh"
 else
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    
-    # Add Homebrew to PATH
-    if [[ $(uname -m) == 'arm64' ]]; then
-        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-    else
-        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
-        eval "$(/usr/local/bin/brew shellenv)"
-    fi
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
 fi
 
-# Make sure brew is available
-if [[ $(uname -m) == 'arm64' ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-else
-    eval "$(/usr/local/bin/brew shellenv)"
-fi
-
-# Install Node.js
+# Install Node.js via NVM
 echo ""
 echo "[2/4] Installing Node.js..."
-if command -v node &> /dev/null; then
-    echo "       Node.js already installed, skipping."
-else
-    brew install node
-fi
+nvm install --lts
+nvm use --lts
+nvm alias default lts/*
 
 # Install Claude Code CLI
 echo ""
@@ -50,10 +36,30 @@ npm install -g openclaw
 
 echo ""
 echo "===================================="
-echo "  Installation Complete!"
+echo "  OpenClaw is Ready!"
 echo "===================================="
 echo ""
 echo "Next step: Run this command:"
 echo ""
 echo "  openclaw configure"
 echo ""
+
+# Check if Homebrew is already installed
+if command -v brew &> /dev/null; then
+    echo "(Homebrew is already installed)"
+else
+    echo "===================================="
+    echo "  Installing Homebrew in background"
+    echo "===================================="
+    echo ""
+    echo "A new Terminal window will open to install Homebrew."
+    echo "This includes Xcode tools and takes 10-30 minutes."
+    echo "You can use OpenClaw now while that finishes."
+    echo ""
+    
+    # Spawn new Terminal window for Homebrew install
+    osascript -e 'tell application "Terminal"
+        do script "echo \"Installing Homebrew (this takes a while)...\" && /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" && echo \"\" && echo \"Homebrew installation complete!\" && echo \"You can close this window.\""
+        activate
+    end tell'
+fi

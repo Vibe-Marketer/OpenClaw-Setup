@@ -5,22 +5,8 @@ echo "  OpenClaw Setup for Virtual Machine"
 echo "===================================="
 echo ""
 
-# Install Homebrew (non-interactive)
-echo "[1/5] Installing Homebrew..."
-if command -v brew &> /dev/null; then
-    echo "       Homebrew already installed, skipping."
-else
-    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
-
-# Make sure brew is available
-eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || eval "$(/usr/local/bin/brew shellenv)" 2>/dev/null
-
 # Install NVM
-echo ""
-echo "[2/5] Installing NVM..."
+echo "[1/4] Installing NVM..."
 export NVM_DIR="$HOME/.nvm"
 if [ -s "$NVM_DIR/nvm.sh" ]; then
     echo "       NVM already installed, skipping."
@@ -33,32 +19,46 @@ fi
 
 # Install Node.js via NVM
 echo ""
-echo "[3/5] Installing Node.js..."
+echo "[2/4] Installing Node.js..."
 nvm install --lts
 nvm use --lts
 nvm alias default lts/*
 
 # Install Claude Code CLI
 echo ""
-echo "[4/5] Installing Claude Code CLI..."
+echo "[3/4] Installing Claude Code CLI..."
 npm install -g @anthropic-ai/claude-code
 
 # Install OpenClaw
 echo ""
-echo "[5/5] Installing OpenClaw..."
+echo "[4/4] Installing OpenClaw..."
 npm install -g openclaw
-
-# Install extra tools
-echo ""
-echo "[Bonus] Installing extra tools (git, gh, jq, curl, wget)..."
-brew install git gh jq curl wget 2>/dev/null || true
 
 echo ""
 echo "===================================="
-echo "  Installation Complete!"
+echo "  OpenClaw is Ready!"
 echo "===================================="
 echo ""
 echo "Next step: Run this command:"
 echo ""
 echo "  openclaw configure"
 echo ""
+
+# Check if Homebrew is already installed
+if command -v brew &> /dev/null; then
+    echo "(Homebrew is already installed)"
+else
+    echo "===================================="
+    echo "  Installing Homebrew in background"
+    echo "===================================="
+    echo ""
+    echo "Homebrew will install in the background."
+    echo "This includes Xcode tools and takes 10-30 minutes."
+    echo "You can use OpenClaw now while that finishes."
+    echo ""
+    
+    # Run Homebrew install in background (non-interactive for VMs)
+    (NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile) &
+    
+    echo "Homebrew installing in background (PID: $!)"
+fi
